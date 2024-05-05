@@ -25,7 +25,7 @@ const Card = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [editindex, setEditindex] = useState({});
-
+console.log(card)
   const {
     register,
     handleSubmit,
@@ -42,15 +42,20 @@ const Card = () => {
     }));
   };
 
-  const editblog = async (index) => {
+  const editblog = async (id) => {
+    console.log(id)
     setIsModalOpen(true);
-    const editresult = card[index];
-    setEditindex({ ...editresult, index });
+    const editresult = card.find(item => item.id === id);
+    setEditindex({});
+    console.log(editresult)
+    setEditindex(prevState => ({ ...prevState, ...editresult }));
   };
 
-  const deleteblog = async (index) => {
+  console.log(editindex?.title);
+
+  const deleteblog = async (id) => {
     const response = await fetch(
-      `https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog/${index + 1}`,
+      `https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog/${id}`,
       {
         method: "DELETE",
         headers: {
@@ -58,15 +63,18 @@ const Card = () => {
         },
       }
     );
-    getallcards().then((res) => setCard(res));
+    if (response.ok) {
+      // Remove the deleted item from the card state
+      setCard(prevState => prevState.filter(item => item.id !== id));
+    } else {
+      console.error("Failed to delete the blog post.");
+    }
   };
 
   const updateblog = async (data) => {
     try {
       const response = await fetch(
-        `https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog/${
-          editindex.index + 1
-        }`,
+        `https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog/${editindex.id}`,
         {
           method: "PUT",
           headers: {
@@ -75,7 +83,7 @@ const Card = () => {
           body: JSON.stringify(data),
         }
       );
-
+  
       if (response.ok) {
         // If the update is successful, close the modal
         reset();
@@ -112,8 +120,9 @@ const Card = () => {
       <div className="row m-2 row-cols-1 row-cols-md-4 g-3 ">
         {card.length &&
           card.map((currelm, index) => {
+            
             return (
-              <div className="col d-flex flex-wrap" key={index}>
+              <div className="col d-flex flex-wrap" key={currelm.id}>
                 <div className="card custom-card-height">
                   <img src={currelm.url} className="card-img-top" alt="..." />
                   <div className="card-body">
@@ -136,8 +145,8 @@ const Card = () => {
                   </div>
                   {isLoggedIn && (
                     <div className="opt-button">
-                      <FaEdit size={25} onClick={() => editblog(index)} />
-                      <MdDelete size={25} onClick={() => deleteblog(index)} />
+                      <FaEdit size={25} onClick={() => editblog(currelm.id)} />
+                      <MdDelete size={25} onClick={() => deleteblog(currelm.id)} />
                     </div>
                   )}
                 </div>
@@ -178,7 +187,7 @@ const Card = () => {
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      defaultValue={editindex?.title || ""}
+                      value={editindex?.title || ""}
                     />
                     <span className="errormessage">
                       {errors.title?.message}
@@ -194,7 +203,7 @@ const Card = () => {
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      defaultValue={editindex?.description || ""}
+                      value={editindex?.description || ""}
                     />
                     <span className="errormessage">
                       {errors.description?.message}
@@ -210,7 +219,7 @@ const Card = () => {
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      defaultValue={editindex?.url || ""}
+                      value={editindex?.url || ""}
                     />
                     <span className="errormessage">{errors.url?.message}</span>
                   </div>
