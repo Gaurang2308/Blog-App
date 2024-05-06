@@ -20,12 +20,11 @@ const schema = yup.object().shape({
   url: yup.string().required("Please enter image url."),
 });
 
-const Card = () => {
-  const [card, setCard] = useState([]);
+const Card = ({ card, getallcards }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [editindex, setEditindex] = useState({});
-console.log(card)
+  console.log(card);
   const {
     register,
     handleSubmit,
@@ -43,12 +42,11 @@ console.log(card)
   };
 
   const editblog = async (id) => {
-    console.log(id)
+    console.log(id);
     setIsModalOpen(true);
-    const editresult = card.find(item => item.id === id);
-    setEditindex({});
-    console.log(editresult)
-    setEditindex(prevState => ({ ...prevState, ...editresult }));
+    const editresult = card.find((item) => item.id === id);
+    console.log(editresult);
+    setEditindex(editresult);
   };
 
   console.log(editindex?.title);
@@ -64,8 +62,7 @@ console.log(card)
       }
     );
     if (response.ok) {
-      // Remove the deleted item from the card state
-      setCard(prevState => prevState.filter(item => item.id !== id));
+      getallcards();
     } else {
       console.error("Failed to delete the blog post.");
     }
@@ -83,13 +80,13 @@ console.log(card)
           body: JSON.stringify(data),
         }
       );
-  
+
       if (response.ok) {
         // If the update is successful, close the modal
         reset();
         setIsModalOpen(false);
         // Refresh the card list
-        getallcards().then((res) => setCard(res));
+        getallcards();
       } else {
         console.error("Failed to update the blog post.");
       }
@@ -99,28 +96,12 @@ console.log(card)
   };
 
   const isLoggedIn = localStorage.getItem("isLoggedIn");
-  useEffect(() => {
-    getallcards().then((res) => setCard(res));
-  }, []);
-  const getallcards = async () => {
-    const response = await fetch(
-      "https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const result = await response.json();
-    return result;
-  };
+
   return (
     <div>
       <div className="row m-2 row-cols-1 row-cols-md-4 g-3 ">
-        {card.length &&
+        {card?.length &&
           card.map((currelm, index) => {
-            
             return (
               <div className="col d-flex flex-wrap" key={currelm.id}>
                 <div className="card custom-card-height">
@@ -146,7 +127,10 @@ console.log(card)
                   {isLoggedIn && (
                     <div className="opt-button">
                       <FaEdit size={25} onClick={() => editblog(currelm.id)} />
-                      <MdDelete size={25} onClick={() => deleteblog(currelm.id)} />
+                      <MdDelete
+                        size={25}
+                        onClick={() => deleteblog(currelm.id)}
+                      />
                     </div>
                   )}
                 </div>
@@ -173,7 +157,10 @@ console.log(card)
                     className="btn-close"
                     data-bs-dismiss="modal"
                     aria-label="Close"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      reset();
+                    }}
                   ></button>
                 </div>
                 <div className="modal-body">
@@ -187,7 +174,7 @@ console.log(card)
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      value={editindex?.title || ""}
+                      defaultValue={editindex?.title || ""}
                     />
                     <span className="errormessage">
                       {errors.title?.message}
@@ -203,7 +190,7 @@ console.log(card)
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      value={editindex?.description || ""}
+                      defaultValue={editindex?.description || ""}
                     />
                     <span className="errormessage">
                       {errors.description?.message}
@@ -219,7 +206,7 @@ console.log(card)
                       type="text"
                       class="form-control"
                       id="recipient-name"
-                      value={editindex?.url || ""}
+                      defaultValue={editindex?.url || ""}
                     />
                     <span className="errormessage">{errors.url?.message}</span>
                   </div>
@@ -228,7 +215,10 @@ console.log(card)
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      reset();
+                    }}
                   >
                     Close
                   </button>

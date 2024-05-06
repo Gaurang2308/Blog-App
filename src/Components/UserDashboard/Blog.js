@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import Card from "../Navbar/Card";
@@ -20,7 +20,12 @@ const schema = yup.object().shape({
 });
 
 const Blog = () => {
+  const [card, setCard] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    getallcards();
+  }, []);
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -37,6 +42,20 @@ const Blog = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const getallcards = async () => {
+    const response = await fetch(
+      "https://6630e648c92f351c03db7f68.mockapi.io/api/AddBlog",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const result = await response.json();
+    setCard(result);
+  };
 
   const onSubmitHandler = async (data) => {
     try {
@@ -58,7 +77,7 @@ const Blog = () => {
       // Assuming you want to dispatch an action after successful registration
 
       // Reset form
-
+      getallcards();
       reset();
       setIsModalOpen(false);
 
@@ -78,7 +97,11 @@ const Blog = () => {
           Add Blog
         </button>
       </div>
-      <Card handleEditClick={handleEditClick} />
+      <Card
+        card={card}
+        getallcards={getallcards}
+        handleEditClick={handleEditClick}
+      />
       {isModalOpen && (
         <form onSubmit={handleSubmit(onSubmitHandler)}>
           <div
